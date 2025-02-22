@@ -6,7 +6,6 @@ from transformers import AutoModel, AutoConfig
 from transformers import AutoTokenizer
 import pandas as pd
 
-AUTH_TOKEN = "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"
 
 tokenizer = AutoTokenizer.from_pretrained('colbert-ir/colbertv2.0',
                                           use_auth_token=AUTH_TOKEN)
