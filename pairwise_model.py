@@ -7,8 +7,7 @@ from transformers import AutoTokenizer
 import pandas as pd
 
 
-tokenizer = AutoTokenizer.from_pretrained('colbert-ir/colbertv2.0',
-                                          use_auth_token=AUTH_TOKEN)
+tokenizer = AutoTokenizer.from_pretrained('colbert-ir/colbertv2.0')
 pad_token_id = tokenizer.pad_token_id
 
 
@@ -50,26 +49,6 @@ class PairwiseModel(nn.Module):
             preds = torch.concat(preds)
         return preds.cpu().numpy()
 
-    def stage2_ranking(self, question, answer, titles, texts):
-        tmp = pd.DataFrame()
-        tmp["candidate"] = texts
-        tmp["question"] = question
-        tmp["answer"] = answer
-        tmp["title"] = titles
-        valid_dataset = SiameseDatasetStage2(tmp, tokenizer, self.max_length, is_test=True)
-        valid_loader = DataLoader(valid_dataset, batch_size=self.batch_size, collate_fn=collate_fn,
-                                  num_workers=0, shuffle=False, pin_memory=True)
-        preds = []
-        with torch.no_grad():
-            bar = enumerate(valid_loader)
-            for step, data in bar:
-                ids = data["ids"].to(self.device)
-                masks = data["masks"].to(self.device)
-                preds.append(torch.sigmoid(self(ids, masks)).view(-1))
-            preds = torch.concat(preds)
-        return preds.cpu().numpy()
-
-
 class SiameseDatasetStage1(Dataset):
 
     def __init__(self, df, tokenizer, max_length, is_test=False):
@@ -105,7 +84,6 @@ def collate_fn(batch):
         if len(ids[i]) < max_len:
             ids[i] = torch.cat((ids[i], torch.tensor([pad_token_id, ] * (max_len - len(ids[i])), dtype=torch.long)))
         masks.append(ids[i] != pad_token_id)
-    # print(tokenizer.decode(ids[0]))
     outputs = {
         "ids": torch.vstack(ids),
         "masks": torch.vstack(masks),

@@ -45,8 +45,5 @@ class QAEnsembleModel(nn.Module):
                         best_score = res["score"]
         if len(curr_answers) == 0:
             return None
-        # curr_answers = [post_process_answer(x, self.entity_dict) for x in curr_answers]
-        # answer = post_process_answer(answer, self.entity_dict)
-        # new_best_answer = post_process_answer(find_best_cluster(curr_answers, answer), self.entity_dict)
         new_best_answer = find_best_cluster(curr_answers, answer)
         return new_best_answer
